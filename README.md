@@ -16,3 +16,9 @@ Ouvrir le dossier → laisser Gradle synchroniser → **Build > Build APK(s)**.
 Tout l'écran est dans `app/src/main/assets/index.html`.
 Pour changer de version, augmente `versionCode` dans `app/build.gradle`
 (sinon Android refuse la mise à jour par-dessus l'ancienne).
+
+## iPhone (web app installable)
+La version iPhone est dans `docs/` et publiée par GitHub Pages :
+https://ahmedkdd.github.io/KorkedAgri/
+Ouvrir dans **Safari** → bouton Partager → **Sur l'écran d'accueil**.
+Fonctionne hors ligne ; les données restent sur le téléphone.

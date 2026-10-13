@@ -1,0 +1,158 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2F5D3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="KorkedAgri">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>KorkedAgri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: une colonne mobile — total en tête, formulaire court, liste dessous */
+:root{
+  --bg:#f5f7f1; --surface:#ffffff; --ink:#1d2a1f; --muted:#5f6d5f; --line:#dde3d6;
+  --leaf:#2f5d3a; --orange:#e8760f; --good:#2f7a45; --bad:#c2412d;
+  --display:"Young Serif",Georgia,serif; --body:"Figtree",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121812; --surface:#1b231c; --ink:#e8eee4; --muted:#9aa897; --line:#2c372d;
+  --leaf:#24402b; --orange:#f5953a; --good:#6cc386; --bad:#ef7a66; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121812; --surface:#1b231c; --ink:#e8eee4; --muted:#9aa897; --line:#2c372d;
+  --leaf:#24402b; --orange:#f5953a; --good:#6cc386; --bad:#ef7a66; color-scheme:dark}
+*{box-sizing:border-box}
+body{padding-top:env(safe-area-inset-top);background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding:0 16px}
+.wrap{max-width:520px;margin:0 auto;padding-block:20px 48px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;gap:10px}
+.fruit{width:42px;height:42px;flex:none}
+h1{font-family:var(--body);font-weight:800;font-size:1.55rem;letter-spacing:-.03em;margin:0}
+h1 span{color:var(--orange);font-weight:500;margin-left:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.bilan{background:var(--leaf);color:#f5f7f1;border-radius:18px;padding:18px;display:grid;gap:12px}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;opacity:.8}
+.big{font-family:var(--display);font-size:2.2rem;line-height:1.05}
+.big.neg{color:#ffb4a5}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid rgba(255,255,255,.2);padding-top:12px}
+.row2 .v{font-weight:700;font-size:1.05rem}
+
+form{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{font:inherit;font-weight:700;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+.seg button.on.charge{border-color:var(--bad);color:var(--bad)}
+.seg button.on.benef{border-color:var(--good);color:var(--good)}
+input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
+input:focus,button:focus-visible{outline:2px solid var(--orange);outline-offset:1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.op .d{font-size:.8rem;color:var(--muted);font-weight:400;margin-top:2px}
+.primary{font:inherit;font-weight:700;border:0;border-radius:12px;padding:14px;background:var(--orange);color:#fff;cursor:pointer}
+.msg{font-size:.85rem;min-height:1.2em;color:var(--muted)}
+.msg.err{color:var(--bad)}
+
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.op{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:12px 8px 12px 14px;border-top:1px solid var(--line)}
+.op:first-child{border-top:0}
+.op .t{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.op .amt{font-weight:700}
+.op.charge .amt{color:var(--bad)} .op.benef .amt{color:var(--good)}
+.del{border:0;background:none;color:var(--muted);font-size:1.05rem;cursor:pointer;padding:4px 8px;border-radius:6px}
+.del:hover{color:var(--bad)}
+.empty{padding:24px 16px;text-align:center;color:var(--muted)}
+.note{font-size:.78rem;color:var(--muted);text-align:center;margin:0}
+</style></head><body>
+
+<div class="wrap">
+  <header>
+    <svg class="fruit" viewBox="0 0 40 40" aria-hidden="true">
+      <rect width="40" height="40" rx="11" fill="var(--orange)"/>
+      <circle cx="20" cy="21" r="12" fill="#fff"/>
+      <circle cx="20" cy="21" r="10" fill="#ffc06b"/>
+      <g stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M20 21V11.5M20 21l8.2 4.7M20 21l-8.2 4.7M20 21l8.2-4.7M20 21l-8.2-4.7M20 21v9.5"/></g>
+      <circle cx="20" cy="21" r="1.8" fill="#fff"/>
+      <path d="M27 4c5 0 8 3 8 7-5 0-8-3-8-7z" fill="#2f7a45"/>
+    </svg>
+    <h1>Korked<span>Agri</span></h1>
+  </header>
+
+  <section class="bilan" aria-label="Résultat">
+    <div><div class="lbl">Résultat net</div><div class="big num" id="net">0 DT</div></div>
+    <div class="row2">
+      <div><div class="lbl">Bénéfices</div><div class="v num" id="ben">0</div></div>
+      <div><div class="lbl">Charges</div><div class="v num" id="chg">0</div></div>
+    </div>
+  </section>
+
+  <form id="f">
+    <div class="seg">
+      <button type="button" id="b-charge" class="charge on">− Charge</button>
+      <button type="button" id="b-benef" class="benef">+ Bénéfice</button>
+    </div>
+    <input id="kind" list="types" placeholder="Type (ex. Engrais, Vente oranges)" maxlength="60" autocomplete="off">
+    <datalist id="types"></datalist>
+    <div class="two">
+      <input id="amt" type="number" min="0" step="0.001" inputmode="decimal" placeholder="Montant (DT)">
+      <input id="date" type="date" aria-label="Date">
+    </div>
+    <input id="com" placeholder="Commentaire (facultatif)" maxlength="120" autocomplete="off">
+    <button class="primary" type="submit" id="save">Ajouter la charge</button>
+    <div class="msg" id="msg" role="status"></div>
+  </form>
+
+  <div class="list" id="list"></div>
+  <p class="note" id="storeNote"></p>
+</div>
+
+<script>
+const SUG={charge:["Main d'œuvre","Irrigation / eau","Engrais","Traitements","Carburant","Transport","Facture STEG","CNSS ouvrier"],benef:["Vente oranges","Autre"]};
+const $=id=>document.getElementById(id);
+const fmt=n=>(Math.round(n*1000)/1000).toLocaleString("fr-FR",{maximumFractionDigits:3});
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let ops=[],mode="charge",col=null;
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const fd=d=>d?new Date(d+"T00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
+$("date").value=today();
+
+const LS="verger-simple";
+function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return[]}}
+function lsSave(){try{localStorage.setItem(LS,JSON.stringify(ops))}catch(e){}}
+async function addOp(o){if(col)await col.doc(o.id).set(o);else{ops.push(o);lsSave();render()}}
+async function delOp(id){if(col)await col.doc(id).delete();else{ops=ops.filter(o=>o.id!==id);lsSave();render()}}
+
+function setMode(m){
+  mode=m;
+  $("b-charge").classList.toggle("on",m==="charge");$("b-benef").classList.toggle("on",m==="benef");
+  $("types").innerHTML=SUG[m].map(s=>`<option value="${esc(s)}">`).join("");
+  $("save").textContent=m==="charge"?"Ajouter la charge":"Ajouter le bénéfice";
+}
+$("b-charge").onclick=()=>setMode("charge");$("b-benef").onclick=()=>setMode("benef");
+
+$("f").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const kind=$("kind").value.trim(),amount=+$("amt").value||0,msg=$("msg");msg.className="msg";
+  if(!kind){msg.className="msg err";msg.textContent="Écris le type.";return}
+  if(amount<=0){msg.className="msg err";msg.textContent="Écris un montant supérieur à 0.";return}
+  const o={id:"op"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),mode,kind,amount:Math.round(amount*1000)/1000,date:$("date").value||today(),com:$("com").value.trim(),at:Date.now()};
+  try{await addOp(o);msg.textContent="Ajouté : "+kind+" "+fmt(amount)+" DT";$("kind").value="";$("amt").value="";$("com").value="";$("kind").focus()}
+  catch(err){msg.className="msg err";msg.textContent="Ajout impossible."}
+});
+
+function render(){
+  const ben=ops.filter(o=>o.mode==="benef").reduce((s,o)=>s+o.amount,0);
+  const chg=ops.filter(o=>o.mode==="charge").reduce((s,o)=>s+o.amount,0);
+  const net=ben-chg;
+  $("net").textContent=(net<0?"−":"")+fmt(Math.abs(net))+" DT";$("net").classList.toggle("neg",net<0);
+  $("ben").textContent=fmt(ben)+" DT";$("chg").textContent=fmt(chg)+" DT";
+  const L=$("list"),list=[...ops].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.at||0)-(a.at||0));
+  L.innerHTML=list.length?list.map(o=>`<div class="op ${o.mode}"><div class="t">${esc(o.kind)}<div class="d">${fd(o.date)}${o.com?" · "+esc(o.com):""}</div></div>
+    <div class="amt num">${o.mode==="charge"?"−":"+"}${fmt(o.amount)}</div>
+    <button class="del" data-id="${o.id}" aria-label="Supprimer">✕</button></div>`).join("")
+    :`<div class="empty">Rien encore. Ajoute une charge ou un bénéfice ci-dessus.</div>`;
+  L.querySelectorAll(".del").forEach(b=>b.onclick=()=>delOp(b.dataset.id));
+}
+
+setMode("charge");ops=lsLoad();render();
+$("storeNote").textContent="Données enregistrées sur ce téléphone.";
+</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});</script></body></html>
