@@ -37,7 +37,13 @@ form{display:flex;flex-direction:column;gap:10px;background:var(--surface);borde
 .seg button.on.benef{border-color:var(--good);color:var(--good)}
 input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
 input:focus,button:focus-visible{outline:2px solid var(--orange);outline-offset:1px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.two input{min-width:0}
+input[type="date"]{-webkit-appearance:none;appearance:none;min-height:48px;text-align:left}
+input[type="date"]::-webkit-date-and-time-value{text-align:left}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.88rem;font-weight:600;padding:8px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip.sel{border-color:var(--orange);background:var(--orange);color:#fff}
 .op .d{font-size:.8rem;color:var(--muted);font-weight:400;margin-top:2px}
 .primary{font:inherit;font-weight:700;border:0;border-radius:12px;padding:14px;background:var(--orange);color:#fff;cursor:pointer}
 .msg{font-size:.85rem;min-height:1.2em;color:var(--muted)}
@@ -51,6 +57,12 @@ input:focus,button:focus-visible{outline:2px solid var(--orange);outline-offset:
 .op.charge .amt{color:var(--bad)} .op.benef .amt{color:var(--good)}
 .del{border:0;background:none;color:var(--muted);font-size:1.05rem;cursor:pointer;padding:4px 8px;border-radius:6px}
 .del:hover{color:var(--bad)}
+.op.ask{background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.confirm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.confirm span{font-size:.85rem;font-weight:600;color:var(--bad)}
+.confirm button{font:inherit;font-size:.85rem;font-weight:700;border-radius:8px;padding:7px 12px;cursor:pointer}
+.yes{border:0;background:var(--bad);color:#fff}
+.no{border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 .empty{padding:24px 16px;text-align:center;color:var(--muted)}
 .note{font-size:.78rem;color:var(--muted);text-align:center;margin:0}
 </style></head><body>
@@ -81,8 +93,8 @@ input:focus,button:focus-visible{outline:2px solid var(--orange);outline-offset:
       <button type="button" id="b-charge" class="charge on">− Charge</button>
       <button type="button" id="b-benef" class="benef">+ Bénéfice</button>
     </div>
-    <input id="kind" list="types" placeholder="Type (ex. Engrais, Vente oranges)" maxlength="60" autocomplete="off">
-    <datalist id="types"></datalist>
+    <div class="chips" id="chips" role="group" aria-label="Type"></div>
+    <input id="kind" placeholder="Ou écris un autre type" maxlength="60" autocomplete="off">
     <div class="two">
       <input id="amt" type="number" min="0" step="0.001" inputmode="decimal" placeholder="Montant (DT)">
       <input id="date" type="date" aria-label="Date">
@@ -101,7 +113,7 @@ const SUG={charge:["Main d'œuvre","Irrigation / eau","Engrais","Traitements","C
 const $=id=>document.getElementById(id);
 const fmt=n=>(Math.round(n*1000)/1000).toLocaleString("fr-FR",{maximumFractionDigits:3});
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let ops=[],mode="charge",col=null;
+let ops=[],mode="charge",col=null,asking=null;
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const fd=d=>d?new Date(d+"T00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"";
 $("date").value=today();
@@ -112,12 +124,18 @@ function lsSave(){try{localStorage.setItem(LS,JSON.stringify(ops))}catch(e){}}
 async function addOp(o){if(col)await col.doc(o.id).set(o);else{ops.push(o);lsSave();render()}}
 async function delOp(id){if(col)await col.doc(id).delete();else{ops=ops.filter(o=>o.id!==id);lsSave();render()}}
 
+function renderChips(){
+  const cur=$("kind").value.trim();
+  $("chips").innerHTML=SUG[mode].map(s=>`<button type="button" class="chip${s===cur?" sel":""}" data-v="${esc(s)}">${esc(s)}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{$("kind").value=b.dataset.v;renderChips()});
+}
 function setMode(m){
-  mode=m;
+  mode=m;$("kind").value="";
   $("b-charge").classList.toggle("on",m==="charge");$("b-benef").classList.toggle("on",m==="benef");
-  $("types").innerHTML=SUG[m].map(s=>`<option value="${esc(s)}">`).join("");
+  renderChips();
   $("save").textContent=m==="charge"?"Ajouter la charge":"Ajouter le bénéfice";
 }
+$("kind").oninput=renderChips;
 $("b-charge").onclick=()=>setMode("charge");$("b-benef").onclick=()=>setMode("benef");
 
 $("f").addEventListener("submit",async e=>{
@@ -126,7 +144,7 @@ $("f").addEventListener("submit",async e=>{
   if(!kind){msg.className="msg err";msg.textContent="Écris le type.";return}
   if(amount<=0){msg.className="msg err";msg.textContent="Écris un montant supérieur à 0.";return}
   const o={id:"op"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),mode,kind,amount:Math.round(amount*1000)/1000,date:$("date").value||today(),com:$("com").value.trim(),at:Date.now()};
-  try{await addOp(o);msg.textContent="Ajouté : "+kind+" "+fmt(amount)+" DT";$("kind").value="";$("amt").value="";$("com").value="";$("kind").focus()}
+  try{await addOp(o);msg.textContent="Ajouté : "+kind+" "+fmt(amount)+" DT";$("kind").value="";$("amt").value="";$("com").value="";renderChips()}
   catch(err){msg.className="msg err";msg.textContent="Ajout impossible."}
 });
 
@@ -139,9 +157,13 @@ function render(){
   const L=$("list"),list=[...ops].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.at||0)-(a.at||0));
   L.innerHTML=list.length?list.map(o=>`<div class="op ${o.mode}"><div class="t">${esc(o.kind)}<div class="d">${fd(o.date)}${o.com?" · "+esc(o.com):""}</div></div>
     <div class="amt num">${o.mode==="charge"?"−":"+"}${fmt(o.amount)}</div>
-    <button class="del" data-id="${o.id}" aria-label="Supprimer">✕</button></div>`).join("")
+    ${asking===o.id
+      ?`</div><div class="op ask"><div class="confirm" style="grid-column:1/-1"><span>Supprimer ?</span><button class="no" data-id="${o.id}">Non</button><button class="yes" data-id="${o.id}">Oui</button></div>`
+      :`<button class="del" data-id="${o.id}" aria-label="Supprimer">✕</button>`}</div>`).join("")
     :`<div class="empty">Rien encore. Ajoute une charge ou un bénéfice ci-dessus.</div>`;
-  L.querySelectorAll(".del").forEach(b=>b.onclick=()=>delOp(b.dataset.id));
+  L.querySelectorAll(".del").forEach(b=>b.onclick=()=>{asking=b.dataset.id;render()});
+  L.querySelectorAll(".no").forEach(b=>b.onclick=()=>{asking=null;render()});
+  L.querySelectorAll(".yes").forEach(b=>b.onclick=()=>{const id=b.dataset.id;asking=null;delOp(id)});
 }
 
 setMode("charge");ops=lsLoad();render();
