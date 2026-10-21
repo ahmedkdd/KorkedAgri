@@ -122,7 +122,7 @@ input[type="date"]::-webkit-date-and-time-value{text-align:left}
 </div>
 
 <script>
-const SUG={charge:["Main d'œuvre","Irrigation / eau","Engrais","Traitements","Carburant","Transport","Facture STEG","CNSS ouvrier","Maintenance","Fumier"],benef:["Vente oranges","Vente Thompson","Vente mandarines","Vente citrons","Autre"]};
+const SUG={charge:["Main d'œuvre","Irrigation / eau","Engrais","Traitements","Carburant","Transport","Facture STEG","CNSS ouvrier","Maintenance","Fumier"],benef:["Vente Thompson","Vente mandarines","Vente citrons","Autre"]};
 const $=id=>document.getElementById(id);
 const fmt=n=>(Math.round(n*1000)/1000).toLocaleString("fr-FR",{maximumFractionDigits:3});
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
