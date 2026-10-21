@@ -1,6 +1,6 @@
 // Cache hors ligne : l'appli fonctionne sans Internet après la 1re ouverture
-const C = "korkedagri-v6";
-const FILES = ["./", "index.html", "manifest.json", "apple-touch-icon.png", "icon-192.png", "icon-512.png"];
+const C = "korkedagri-v7";
+const FILES = ["./", "index.html", "manifest.json", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "export.js", "lib/jspdf.umd.min.js", "lib/jspdf.plugin.autotable.min.js"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(C).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C).map(k => caches.delete(k)))));
