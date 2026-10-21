@@ -1,5 +1,5 @@
 // Cache hors ligne : l'appli fonctionne sans Internet après la 1re ouverture
-const C = "korkedagri-v3";
+const C = "korkedagri-v4";
 const FILES = ["./", "index.html", "manifest.json", "apple-touch-icon.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(C).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
